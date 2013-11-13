@@ -109,7 +109,9 @@ class Camera{
 		//double viewAngle, aspect,nearDist,farDist;
 		void setModelViewMatrix();
 	public:
-		Camera();
+		Camera(){
+			;
+		}
 		void set(Point3 eye, Point3 look, Vector3 up);
 		void roll(float angle);
 		void pitch(float angle);
@@ -134,8 +136,8 @@ void Camera::setModelViewMatrix(){
 
 Vector3 Vector3::cross(Vector3 v){
 	Vector3 t(0,0,0);
-	t.x=x*v.z - z*v.y;
-	t.y=z*v.x - x*v.z;
+	t.x=y*v.z - z*v.y;
+	t.y=-x*v.z + z*v.x;
 	t.z=x*v.y - y*v.x;
 	return t;
 }
@@ -174,7 +176,10 @@ void Camera::roll(float angle){
 }
 
 
+//Camera cam=Camera();
+
 //glulookat variables
+
 static GLdouble xview=.1, yview=.1, zview=.1;
 
 // range kutta variables
@@ -724,9 +729,16 @@ void reshape(int w, int h)
    glMatrixMode(GL_MODELVIEW);
    glLoadIdentity();
    //looking from (1,1,1) towards (0,0,0)
-  gluLookAt(xview,yview,zview,0,0,0,0,1,0);
+//  gluLookAt(xview,yview,zview,0,0,0,0,1,0);
 //      gluLookAt(1,0,0,0,0,0,0,1,0);
 //   gluLookAt(5,5,5,0,0,0,0,1,0);
+	Point3 eye(.1,.1,0.1);	
+	Point3 look(0,0,0);
+	Vector3 up(0,1,0); 	
+	Camera cam;
+	cam.set(eye,look,up);
+	glutPostRedisplay();
+
 }
 
 void mouse(int button, int state, int x, int y)
@@ -761,8 +773,14 @@ void myKeyBoardFunc(unsigned char key, int x, int y){
 
 	}
 	glLoadIdentity();
-   //looking from (1,1,1) towards (0,0,0)
-	gluLookAt(xview,yview,zview,0,0,0,0,1,0);
+	//looking from (1,1,1) towards (0,0,0)
+	//gluLookAt(xview,yview,zview,0,0,0,0,1,0);
+	//Camera cam;
+	Point3 eye(1,1,1);	
+	Point3 look(0,0,0);
+	Vector3 up(0,1,0); 	
+	Camera cam;
+	cam.set(eye,look,up);
 	glutPostRedisplay();
 }
 
