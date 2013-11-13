@@ -13,7 +13,7 @@ Sai Aditya Chitturu	 2010A7PS063H
 #include <math.h>
 
 //glulookat variables
-static GLdouble xview=1.0, yview=1.0, zview=1.0;
+static GLdouble xview=.1, yview=.1, zview=.1;
 
 // range kutta variables
 // k is spring constant and is set to 1.5
@@ -314,8 +314,10 @@ void display(void)
 		glPopMatrix();
 		glPushMatrix();
 			glTranslated(0,0,i-1);
-			glRotated(90,0,1,0);
-			drawLine();
+			glBegin(GL_LINES);
+	   			glVertex3d(-2.0,0,0);
+	   			glVertex3d(20,0,0);
+	   		glEnd();
 
 		glPopMatrix();
 		i+=2;
