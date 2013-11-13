@@ -9,11 +9,12 @@ Sai Aditya Chitturu	 2010A7PS063H
 #include <GL/glu.h>
 #include <GL/glut.h>
 #include <stdlib.h>
+#include<stdio.h>
 #include <unistd.h>
 #include <math.h>
 
 class Point3{
-	
+
 	public:
 		float x,y,z;
 		void set(float dx,float dy, float dz){
@@ -47,26 +48,24 @@ class Vector3{
 
 	public:
 		float x,y,z;
-		
+
 		void set(float dx,float dy, float dz){
 			x=dx;
 			y=dy;
 			z=dz;
 		}
-		
+
 		void set(Vector3& v){
-			x=-x;
-			y=-y;
-			z=-z;
-		}//reverse this vector
-		
+			x = v.x; y = v.y; z = v.z;
+		}
+
 		void setDiff(Point3& a, Point3& b){
 			x=a.x-b.x;
 			y=a.y-b.y;
 			z=a.z-b.z;
 		}
 		void normalize();//adjust vector to unit length
-		
+
 		Vector3(float xx,float yy, float zz){
 			x=xx;
 			y=yy;
@@ -76,16 +75,32 @@ class Vector3{
 			x=v.x;
 			y=v.y;
 			z=v.z;
-			
+
 		}
-		
+
 		Vector3(){
 			x=y=z=0;
 		}
-		
-		Vector3 cross(Vector3 b); 
+
+		Vector3 cross(Vector3 v);
 		float dot(Vector3 b);
 };
+
+float Vector3::dot(Vector3 b){
+	float x=x*b.x;
+	float y=y*b.y;
+	float z=z*b.z;
+	return (x+y+z);
+
+}
+
+void Vector3::normalize(){
+
+	float magnitude=sqrt(x*x+y*y+z*z);
+	x=x/magnitude;
+	y=y/magnitude;
+	z=z/magnitude;
+}
 
 class Camera{
 	private:
@@ -99,7 +114,7 @@ class Camera{
 		void roll(float angle);
 		void pitch(float angle);
 		void yaw(float yaw);
-		
+
 		void slide(float delU, float delV, float delN);
 		//void setShape(float vAng, float asp, float nearD, float farD);
 		//void getShape(float &vAng, float &asp, float &nearD, float &farD);
@@ -128,12 +143,14 @@ Vector3 Vector3::cross(Vector3 v){
 void Camera::set(Point3 eye, Point3 look, Vector3 up){
 	eye.set(eye);//store given eye position
 	n.set(eye.x-look.x,eye.y-look.y,eye.z-look.z);//make n
-	Vector3 t( up.cross(n));
-	u.set(t.x,t.y,t.z);//u=n cross up
+	//Vector3 t( up.cross(n));
+	//u.set(t.x,t.y,t.z);//u=n cross up
+	u.set(up.cross(n).x,up.cross(n).y,up.cross(n).z);
 	n.normalize();
 	u.normalize();//make unit vectors
-	Vector3 t1(n.cross(u));
-	v.set(t1.x,t1.y,t1.z);//v=n cross u
+	//Vector3 t1(n.cross(u));
+	//v.set(t1.x,t1.y,t1.z);//v=n cross u
+	v.set(n.cross(u).x,n.cross(u).y,n.cross(u).z);
 	setModelViewMatrix(); //tell openGL
 
 }
@@ -148,9 +165,9 @@ void Camera::slide(float delU, float delV, float delN){
 void Camera::roll(float angle){
 	float cs=cos(3.141/180 * angle);
 	float sn=sin(3.141/180 * angle);
-	
+
 	Vector3 t(u);
-	
+
 	u.set(cs*t.x - sn*v.x, cs*t.y - sn*v.y, cs*t.z-sn*v.z);
 	v.set(sn*t.x+cs*v.x, sn*t.y+cs*v.y,sn*t.z+cs*v.z);
 	setModelViewMatrix();
@@ -171,7 +188,7 @@ static GLdouble x0base=0,x00base=-0.5, x000base=-1;
 //done varibale is used to synchronize the masses as mentioned in documentation
 static int done=0,i=0;
 
-//variables used to create cylinders for lamp	
+//variables used to create cylinders for lamp
 static GLUquadric *myQuad;
 static GLUquadric *myQuad1;
 
@@ -183,7 +200,7 @@ static GLfloat spin = 0.0,spin2=0.0,x=2.0;
 
 void init(void)
 {
-	glClearColor (1, 218/255.0, 218/255.0, 1.0);//glClearColor() is used to set the background color 
+	glClearColor (1, 218/255.0, 218/255.0, 1.0);//glClearColor() is used to set the background color
 	//glShadeModel (GL_FLAT);
 	// Enable lighting
 	glShadeModel (GL_SMOOTH);
@@ -196,7 +213,7 @@ void init(void)
 	//set light color as white and of diffusive type
 	GLfloat lightColor0[] = {1.f, 1.f, 1.f, 1.0f}; //Color (0.5, 0.5, 0.5)
    	glLightfv(GL_LIGHT0, GL_DIFFUSE, lightColor0);
-	
+
 
 
     /*
@@ -205,7 +222,7 @@ void init(void)
 	GLfloat lightColor1[] = {1.f, 1.f, 1.f, 1.0f}; //Color (0.5, 0.5, 0.5)
     glLightfv(GL_LIGHT1, GL_DIFFUSE, lightColor1);
     //GLfloat spot_direction[] = { -1.0, 0.0, 0.0 };
-  	//glLightfv(GL_LIGHT1, GL_SPOT_DIRECTION, spot_direction);	
+  	//glLightfv(GL_LIGHT1, GL_SPOT_DIRECTION, spot_direction);
 	*/
 }
 
@@ -230,7 +247,7 @@ void drawers(){
 void drawTable(){
 
 	glPushMatrix();
-		glTranslated(2.5,0,0);		
+		glTranslated(2.5,0,0);
 		//drawing table drawers
 		glPushMatrix();
 			GLfloat colorDrawers[] = {220/255.0f,201/255.0f,120/255.0f, 1.f};
@@ -240,7 +257,7 @@ void drawTable(){
 			drawers();
 		glPopMatrix();
 		//creating a table top
-		glPushMatrix();		
+		glPushMatrix();
 			GLfloat colorTop[] = {250/255.0f,250/255.0f,205/255.0f, 1.f};
 			glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, colorTop);
 			glTranslated(0,0.125,0);
@@ -270,21 +287,21 @@ void drawBed(){
 			glTranslated(0,-1.25,0);
 			glScaled(3,0.25,4.5);
 			glutSolidCube(1);
-		glPopMatrix();	
+		glPopMatrix();
 		glPushMatrix();
 			glRotated(180,0,1,0);
 			glTranslated(1.5-0.1,-1.25-0.125,2.25-0.1);
 			drawLegs();
-		glPopMatrix();			
+		glPopMatrix();
 		// bed mattress
 		GLfloat colorMatress[] = {.0f,0.9f,.9f, 1.f};
-		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, colorMatress);		
+		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, colorMatress);
 		glPushMatrix();
 			glColor3d(1,0,1);
 			glTranslated(0,-0.925,0);
 			glScaled(2.5,0.5,4);
 			glutSolidCube(1);
-		glPopMatrix();	
+		glPopMatrix();
 		//draw bedLegs
 		GLfloat colorBedLegs[] = {150/255.0f,32/255.0f,32/255.0f, 1.f};
 		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, colorBedLegs);
@@ -317,8 +334,8 @@ void drawBed(){
 			glScaled(3,0.4,0.2);
 			glutSolidCube(1);
 		glPopMatrix();
-	glPopMatrix();	
-	
+	glPopMatrix();
+
 }
 
 void drawLine(){
@@ -343,14 +360,14 @@ void drawSideLedge(){
 		glRotated(-90,1,0,0);
 		glTranslated(-3.5,1.5-0.1,1.5);
 		glScaled(1,0.2,3);
-		glutSolidCube(1);	
+		glutSolidCube(1);
 	glPopMatrix();
 }
 
 void drawLamp(){
 
 	GLfloat color[] = {205/255.0,104/255.0,57/255.0,1.f};
-	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, color);	
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, color);
 
 	//lamp base
 	glutSolidSphere(0.5,15,6);
@@ -363,7 +380,7 @@ void drawLamp(){
 	myQuad1=gluNewQuadric();
 	//lamp cover cone
 	GLfloat color1[] = {176/255.0,224/255.0,230/255.0,1.f};
-	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, color1);	
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, color1);
 	gluCylinder(myQuad1, 3, 1, 3, 15, 5);
 }
 
@@ -373,7 +390,7 @@ void drawBlade(){
 			glVertex3d(0,0,0);
 			glVertex3d(0.71,0,0);
 			glVertex3d(0.5,0.5,0);
-		glEnd();		
+		glEnd();
 }
 
 void drawChairLegs(){
@@ -396,7 +413,7 @@ void drawChairBack(){
 		glScaled(0.2,1.5,0.2);
 		glutSolidCube(1);
 	glPopMatrix();
-	
+
 }
 
 void drawChair(){
@@ -439,14 +456,14 @@ void drawChair(){
 			glScaled(1.5,0.2,0.2);
 			glutSolidCube(1);
 		glPopMatrix();
-		
+
 	glPopMatrix();
 }
 
 void display(void)
 {
 
-   
+
 	glClear(GL_COLOR_BUFFER_BIT);//used to reset the background to the color specified in the init method.
 
 	glColor3d(0,0,0);
@@ -467,7 +484,7 @@ void display(void)
 		glPopMatrix();
 		i+=2;
 	}
-	//ignore  
+	//ignore
 	glPushMatrix();
 		//glScaled(4.99,4.99,4.99);
 	   	//glutWireCube(1);
@@ -488,12 +505,12 @@ void display(void)
 	drawTable();
 	//draw cupboard
 	GLfloat color[] = {139/255.0,105/255.0,20/255.0,1.f};
-	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, color);	
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, color);
 	glPushMatrix();
 		drawSideLedge();
 		glTranslated(0,0,3-0.2);
 		//draw side cuboids of the cupboard
-		drawSideLedge();			
+		drawSideLedge();
 	glPopMatrix();
 	glPushMatrix();
 		drawUpperLedge();
@@ -509,12 +526,12 @@ void display(void)
 	glPushMatrix();
 		//draw teapot
 		GLfloat colorTeapot[] = {255/255.0,222/255.0,173/255.0,1.f};
-		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, colorTeapot);	
+		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, colorTeapot);
 		//glColor3d(138/255.0,138/255.0,52/255.0); 255	222	173
 		glTranslated(-3.5,0.5,0);
 		glPushMatrix();
 			glRotated(90,0,1,0);
-			glutSolidTeapot(0.5);		
+			glutSolidTeapot(0.5);
 		glPopMatrix();
 
 	glPopMatrix();
@@ -527,45 +544,45 @@ void display(void)
 			//mass1 sphere
 			glColor3d(142/255.0,136/255.0,136/255.0);
 			GLfloat colorSphere[] = {142/255.0f,136/255.0f,136/255.0f,1.f};
-			glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, colorSphere);	
+			glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, colorSphere);
 			glTranslated(x0base+x0,0,0);
 			glutSolidSphere(0.130,10,6);
 		glPopMatrix();
 		//cylinder body
 		glColor3d(231/255.0,171/255.0,171/255.0);
 		GLfloat colorCylinder[] = {231/255.0,171/255.0,171/255.0,1.f};
-		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, colorCylinder);	
+		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, colorCylinder);
 		myQuad=gluNewQuadric();
 		glPushMatrix();
 		glTranslated(x00base+x00,0,0);
 		glRotated(90,0,1,0);
-		gluCylinder( myQuad, 0.125, 0.125,(x0base+x0)-(x00base+x00) ,10, 10 );	
+		gluCylinder( myQuad, 0.125, 0.125,(x0base+x0)-(x00base+x00) ,10, 10 );
 		glPopMatrix();
 		//end cylinder body
 		glPushMatrix();
 			//mass2 sphere
 			glColor3d(142/255.0,136/255.0,136/255.0);
-			glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, colorSphere);	
+			glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, colorSphere);
 			glTranslated(x00base+x00,0,0);
 			glutSolidSphere(0.130,10,6);
 		glPopMatrix();
 		//cylinder body
 		glColor3d(231/255.0,171/255.0,171/255.0);
-		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, colorCylinder);	
+		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, colorCylinder);
 		myQuad=gluNewQuadric();
 		glPushMatrix();
 		glTranslated(x000base+x000,0,0);
 		glRotated(90,0,1,0);
-		gluCylinder( myQuad, 0.125, 0.125,(x00base+x00)-(x000base+x000) ,10, 10 );	
+		gluCylinder( myQuad, 0.125, 0.125,(x00base+x00)-(x000base+x000) ,10, 10 );
 		glPopMatrix();
 		//end cylinder body
 		glPushMatrix();
 			//mass sphere 3
 			glColor3d(142/255.0,136/255.0,136/255.0);
-			glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, colorSphere);	
+			glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, colorSphere);
 			glTranslated(x000base+x000,0,0);
 			glutSolidSphere(0.130,10,6);
-		glPopMatrix();	
+		glPopMatrix();
 	glPopMatrix();
 	/*//table fan
 	glPushMatrix();
@@ -576,11 +593,11 @@ void display(void)
 		glRotated(120,0,0,1);
 			drawBlade();
 		glRotated(120,0,0,1);
-			drawBlade();		
+			drawBlade();
 	glPopMatrix();
 	//table fan end
 		*/
-	//draw chair	
+	//draw chair
 	drawChair();
 	glFlush();
 	glutSwapBuffers();
@@ -595,15 +612,15 @@ if(done==0){
 		b1=v0+(h/2.0)*a1;
 		c1=v0+(h/2.0)*b1;
 		d1=v0+h*c1;
-	
+
 		t=-1*(k/m);
 		y=-1*(b/m);
-	
+
 		a2=t*x0+y*v0;
 		b2=t*(x0+(h/2.0)*a2)+y*(v0+(h/2.0)*a2);
 		c2=t*(x0+(h/2.0)*b2)+y*(v0+(h/2.0)*b2);
 		d2=t*(x0+h*c2)+y*(v0+h*c2);
-	
+
 		x1=x0+(h/6.0)*(a1+2*b1+2*c1+d1);
 		v1=v0+(h/6.0)*(a2+2*b2+2*c2+d2);
 
@@ -626,13 +643,13 @@ if(done==0){
 			b11=v00+(h/2.0)*a11;
 			c11=v00+(h/2.0)*b11;
 			d11=v00+h*c11;
-	
-	
+
+
 			a22=t*x00+y*v00;
 			b22=t*(x00+(h/2.0)*a22)+y*(v00+(h/2.0)*a22);
 			c22=t*(x00+(h/2.0)*b22)+y*(v00+(h/2.0)*b22);
 			d22=t*(x00+h*c22)+y*(v00+h*c22);
-	
+
 			x11=x00+(h/6.0)*(a11+2*b11+2*c11+d11);
 			v11=v00+(h/6.0)*(a22+2*b22+2*c22+d22);
 
@@ -655,13 +672,13 @@ if(done==0){
 			b111=v000+(h/2.0)*a111;
 			c111=v000+(h/2.0)*b111;
 			d111=v000+h*c111;
-	
-	
+
+
 			a222=t*x000+y*v000;
 			b222=t*(x000+(h/2.0)*a222)+y*(v000+(h/2.0)*a222);
 			c222=t*(x000+(h/2.0)*b222)+y*(v000+(h/2.0)*b222);
 			d222=t*(x000+h*c222)+y*(v000+h*c222);
-	
+
 			x111=x000+(h/6.0)*(a111+2*b111+2*c111+d111);
 			v111=v000+(h/6.0)*(a222+2*b222+2*c222+d222);
 
@@ -679,7 +696,7 @@ if(done==0){
 	}
 //table fan code
 //ignore
-	spin+=5.0;	
+	spin+=5.0;
 	spin2+=x;
 	if(spin2>=90){
 		x=-2.0;
@@ -687,7 +704,7 @@ if(done==0){
 	else if(spin2<=-10)
 		x=2.0;
 	//printf("%f\n",spin2);
-	
+
 //table fan code end
 	glutPostRedisplay();
 
@@ -712,7 +729,7 @@ void reshape(int w, int h)
 //   gluLookAt(5,5,5,0,0,0,0,1,0);
 }
 
-void mouse(int button, int state, int x, int y) 
+void mouse(int button, int state, int x, int y)
 {
 
 //when left mouse button clicked, animate the worm
@@ -741,7 +758,7 @@ void myKeyBoardFunc(unsigned char key, int x, int y){
 		case 'z':	zview+=0.1;
 					printf("z\n");
 					break;
-	
+
 	}
 	glLoadIdentity();
    //looking from (1,1,1) towards (0,0,0)
@@ -780,3 +797,4 @@ Team members:
 G. Karthik Reddy 2010A7PS140H
 Sai Aditya Chitturu	 2010A7PS063H
 */
+
