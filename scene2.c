@@ -12,6 +12,9 @@ Sai Aditya Chitturu	 2010A7PS063H
 #include <unistd.h>
 #include <math.h>
 
+//glulookat variables
+static GLdouble xview=1.0, yview=1.0, zview=1.0;
+
 // range kutta variables
 // k is spring constant and is set to 1.5
 // b is damping constant(friction coefficient) and is set to 0.9
@@ -557,7 +560,7 @@ void reshape(int w, int h)
    glMatrixMode(GL_MODELVIEW);
    glLoadIdentity();
    //looking from (1,1,1) towards (0,0,0)
-  gluLookAt(1,1,1,0,0,0,0,1,0);
+  gluLookAt(xview,yview,zview,0,0,0,0,1,0);
 //      gluLookAt(1,0,0,0,0,0,0,1,0);
 //   gluLookAt(5,5,5,0,0,0,0,1,0);
 }
@@ -578,6 +581,25 @@ void mouse(int button, int state, int x, int y)
       default:
          break;
    }
+}
+
+void myKeyBoardFunc(unsigned char key, int x, int y){
+	switch(key){
+		case 'x':	xview+=0.1;
+					printf("x\n");
+					break;
+		case 'y':	yview+=0.1;
+					printf("y\n");
+					break;
+		case 'z':	zview+=0.1;
+					printf("z\n");
+					break;
+	
+	}
+	glLoadIdentity();
+   //looking from (1,1,1) towards (0,0,0)
+	gluLookAt(xview,yview,zview,0,0,0,0,1,0);
+	glutPostRedisplay();
 }
 
 
@@ -601,7 +623,7 @@ int main(int argc, char** argv)
    glutReshapeFunc(reshape);
    // mouse is the mouse event callback function
    glutMouseFunc(mouse);
-   //glutKeyboardFunc(keyUp);
+   glutKeyboardFunc(myKeyBoardFunc);
    glutMainLoop();
    return 0;
 }
